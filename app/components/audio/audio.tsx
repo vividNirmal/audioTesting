@@ -26,7 +26,7 @@ const AudioSequencePlayer: React.FC = () => {
   const playAudioSequence = () => {
     // Create a new AudioContext if it doesn't exist
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext )();
     }
 
     // Check if the AudioContext is suspended
