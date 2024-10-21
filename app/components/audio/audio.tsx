@@ -32,6 +32,7 @@ function AudioPlayer() {
         {isPlaying ? 'Pause' : 'Play'}
       </button>
       <audio ref={audioRef} src="assets/audioFile.mp3" />
+      <p>Audio Player Testing ..... </p>
     </div>
   );
 }
