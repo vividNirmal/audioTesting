@@ -3,6 +3,7 @@ import React, { useRef } from "react";
 
 const AudioSequencePlayer: React.FC = () => {
   const audioRefs = useRef<(HTMLAudioElement | null)[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const audioSources = [
     "assets/audio1.mp3",
@@ -14,25 +15,54 @@ const AudioSequencePlayer: React.FC = () => {
   ];
 
   const handlePlaySequence = () => {
-    audioRefs.current.forEach((audio, index) => {
-      if (audio) {
-        setTimeout(() => {
+    // Create a new AudioContext if it doesn't exist
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.AudioContext)();
+    }
+
+    // Check if the AudioContext is suspended
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().then(() => {
+        console.log('Audio context resumed');
+        playAudioSequence();
+      }).catch((error) => {
+        console.error('Failed to resume audio context:', error);
+      });
+    } else {
+      playAudioSequence();
+    }
+  };
+
+  const playAudioSequence = () => {
+    let currentAudioIndex = 0;
+
+    const playNextAudio = () => {
+      if (currentAudioIndex < audioRefs.current.length) {
+        const audio = audioRefs.current[currentAudioIndex];
+        if (audio) {
           const playPromise = audio.play();
 
           // Handle the play promise to check for errors
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
-                console.log(`Audio ${index + 1} is playing`);
+                console.log(`Audio ${currentAudioIndex + 1} is playing`);
               })
               .catch((error: any) => {
-                console.error(`Playback failed for audio ${index + 1}:`, error);
-                alert(`Playback failed for audio ${index + 1}. Please try again.`);
+                console.error(`Playback failed for audio ${currentAudioIndex + 1}:`, error);
+                alert(`Playback failed for audio ${currentAudioIndex + 1}. Please try again.`);
               });
-          }
-        }, index * 2000); // 2 seconds delay between each audio
+          }          
+          audio.onended = () => {
+            currentAudioIndex++;            
+            setInterval(playNextAudio,2000)
+          };
+        }
       }
-    });
+    };
+
+    
+    playNextAudio();
   };
 
   return (
@@ -55,7 +85,8 @@ const AudioSequencePlayer: React.FC = () => {
           }}
           src={src}
         />
-      ))}      
+      ))}
+      
       <p>Audio Sequence Testing ...</p>
     </div>
   );
