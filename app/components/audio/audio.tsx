@@ -1,69 +1,64 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useRef } from "react";
 
-function AudioPlayer() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef: any = useRef(null);
+const AudioSequencePlayer: React.FC = () => {
+  const audioRefs = useRef<(HTMLAudioElement | null)[]>([]);
 
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      // Ensure audio is allowed to play after a user interaction
-      const playPromise = audioRef.current.play();
+  const audioSources = [
+    "assets/audio1.mp3",
+    "assets/audio2.mp3",
+    "assets/audio3.mp3",
+    "assets/audio4.mp3",
+    "assets/audio5.mp3",
+    "assets/audio6.mp3",
+  ];
 
-      // Handle the play promise to check for errors
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch((error: any) => {
-            console.error("Playback failed on iOS:", error);
-          });
+  const handlePlaySequence = () => {
+    audioRefs.current.forEach((audio, index) => {
+      if (audio) {
+        setTimeout(() => {
+          const playPromise = audio.play();
+
+          // Handle the play promise to check for errors
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log(`Audio ${index + 1} is playing`);
+              })
+              .catch((error: any) => {
+                console.error(`Playback failed for audio ${index + 1}:`, error);
+                alert(`Playback failed for audio ${index + 1}. Please try again.`);
+              });
+          }
+        }, index * 2000); // 2 seconds delay between each audio
       }
-    }
+    });
   };
 
-  useEffect(() => {
-    // Handle events for loaded data and error handling
-    const audioElement = audioRef.current;
-    
-    const onLoadedData = () => {
-      console.log("Audio loaded");
-    };
-    
-    const onError = (event: any) => {
-      console.error("Audio error:", event.target.error.message);
-    };
-
-    if (audioElement) {
-      audioElement.addEventListener("loadeddata", onLoadedData);
-      audioElement.addEventListener("error", onError);
-    }
-
-    return () => {
-      // Cleanup event listeners
-      if (audioElement) {
-        audioElement.removeEventListener("loadeddata", onLoadedData);
-        audioElement.removeEventListener("error", onError);
-      }
-    };
-  }, []);
-
   return (
-    <div className="text-center flex justify-center items-center mt-6">
+    <div className="text-center flex flex-col items-center mt-6">
       <button
-        onClick={handlePlayPause}
-        className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+        onClick={handlePlaySequence}
+        className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded mb-4"
       >
-        {isPlaying ? "Pause" : "Play"}
+        Play Audio Sequence
       </button>
-      <audio ref={audioRef} src="assets/audioFile.mp3" />
-      <p>Audio Player Testing ..... </p>
+      
+      {/* Render audio elements using map */}
+      {audioSources.map((src, index) => (
+        <audio
+          key={index}
+          ref={(el) => {
+            if (el) {
+              audioRefs.current[index] = el;
+            }
+          }}
+          src={src}
+        />
+      ))}      
+      <p>Audio Sequence Testing ...</p>
     </div>
   );
-}
+};
 
-export default AudioPlayer;
+export default AudioSequencePlayer;
